@@ -46,6 +46,18 @@ io.on("connection", (socket) => {
     io.to(gameCode).emit("players-updated", gameRooms[gameCode]);
   });
 
+  // Emit question to players
+  socket.on("send-question", ({ gameCode, question }) => {
+    io.to(gameCode).emit("new-question", question);
+    console.log("Sent question to room:", gameCode);
+  });
+
+  // NEW: Handle game start event
+  socket.on("start-game", ({ gameCode }) => {
+    console.log(`Game started in room ${gameCode}`);
+    io.to(gameCode).emit("game-start", { gameCode });
+  });
+
   // Handle client disconnect
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);

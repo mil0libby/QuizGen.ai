@@ -12,8 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Users, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const socket = io("http://localhost:8080");
+import socket from "@/lib/socket";
 
 const Join = () => {
   const navigate = useNavigate();
@@ -65,7 +64,19 @@ const Join = () => {
       gameCode: gameCode.toUpperCase(),
       name: playerName,
     });
+    console.log("succesful join");
   };
+
+  useEffect(() => {
+    socket.on("game-start", ({ gameCode }) => {
+      console.log("Game started, navigating to quiz page");
+      navigate("/student/quiz", { state: { gameCode } });
+    });
+
+    return () => {
+      socket.off("game-start");
+    };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

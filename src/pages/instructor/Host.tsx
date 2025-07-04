@@ -6,6 +6,7 @@ import QuestionCard from "@/components/QuestionCard";
 import TimerBar from "@/components/TimerBar";
 import LeaderboardTable from "@/components/LeaderboardTable";
 import { ChevronRight, Users } from "lucide-react";
+import socket from "@/lib/socket";
 
 const Host = () => {
   const location = useLocation();
@@ -29,18 +30,14 @@ const Host = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gameCode] = useState("ABC555");
 
-  // You can keep your mock players or integrate real players later
-  const mockPlayers = [
-    { id: 1, name: "Alice", score: 2850, correctAnswers: 3, totalAnswers: 3 },
-    { id: 2, name: "Bob", score: 2340, correctAnswers: 2, totalAnswers: 3 },
-    { id: 3, name: "Charlie", score: 1890, correctAnswers: 2, totalAnswers: 3 },
-    { id: 4, name: "Diana", score: 1450, correctAnswers: 1, totalAnswers: 3 },
-    { id: 5, name: "Eve", score: 980, correctAnswers: 1, totalAnswers: 3 },
-  ];
-
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    const nextIndex = currentQuestionIndex + 1;
+    if (nextIndex < questions.length) {
+      socket.emit("send-question", {
+        gameCode,
+        question: questions[nextIndex],
+      });
+      setCurrentQuestionIndex(nextIndex);
       setShowLeaderboard(false);
     } else {
       setShowLeaderboard(true);
@@ -73,9 +70,7 @@ const Host = () => {
             <Card className="bg-blue-100 border-blue-200">
               <CardContent className="p-3">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-800">
-                    {mockPlayers.length}
-                  </div>
+                  <div className="text-2xl font-bold text-blue-800">{5}</div>
                   <div className="text-sm text-blue-600">Players</div>
                 </div>
               </CardContent>
@@ -126,10 +121,7 @@ const Host = () => {
             </p>
           </div>
 
-          <LeaderboardTable
-            players={mockPlayers}
-            showFullStats={isLastQuestion}
-          />
+          <LeaderboardTable players={null} showFullStats={isLastQuestion} />
 
           {!isLastQuestion && (
             <div className="text-center">

@@ -1,52 +1,28 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "@/components/QuestionCard";
 import TimerBar from "@/components/TimerBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Clock } from "lucide-react";
+import socket from "@/lib/socket";
 
 const Quiz = () => {
   const navigate = useNavigate();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const [currentQuestion, setCurrentQuestion] = useState<any | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | undefined>();
   const [hasAnswered, setHasAnswered] = useState(false);
   const [score, setScore] = useState(0);
-
-  const mockQuestions = [
-    {
-      id: 1,
-      question: "Which event is considered the beginning of World War 2?",
-      options: ["Pearl Harbor Attack", "Invasion of Poland", "Battle of Britain", "D-Day Landings"],
-      correctAnswer: 1,
-      difficulty: "Easy"
-    },
-    {
-      id: 2,
-      question: "Who was the leader of Nazi Germany during World War 2?",
-      options: ["Heinrich Himmler", "Hermann Göring", "Adolf Hitler", "Joseph Goebbels"],
-      correctAnswer: 2,
-      difficulty: "Easy"
-    },
-    {
-      id: 3,
-      question: "In which year did World War 2 end?",
-      options: ["1944", "1945", "1946", "1947"],
-      correctAnswer: 1,
-      difficulty: "Medium"
-    }
-  ];
+  const [questionNumber, setQuestionNumber] = useState(0); // Just to show progress
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (hasAnswered) return;
-    
+
     setSelectedAnswer(answerIndex);
     setHasAnswered(true);
-    
-    // Calculate score based on correctness and time
-    const currentQuestion = mockQuestions[currentQuestionIndex];
+
     if (answerIndex === currentQuestion.correctAnswer) {
-      setScore(prev => prev + 1000); // Base score for correct answer
+      setScore((prev) => prev + 1000);
     }
   };
 
@@ -56,27 +32,47 @@ const Quiz = () => {
     }
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < mockQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedAnswer(undefined);
-      setHasAnswered(false);
-    } else {
-      navigate("/student/leaderboard");
-    }
+  const handleAutoAdvance = () => {
+    // In real-time setup, the instructor controls next question
+    // So we only reset state and wait for next `new-question`
+    setSelectedAnswer(undefined);
+    setHasAnswered(false);
   };
 
-  // Auto-advance to next question after showing answer
+  useEffect(() => {
+    socket.on("new-question", (question) => {
+      console.log("new question");
+      setCurrentQuestion(question);
+      handleAutoAdvance();
+      setQuestionNumber((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.off("new-question");
+    };
+  }, []);
+
+  // Auto advance after answer reveal delay
   useEffect(() => {
     if (hasAnswered) {
       const timer = setTimeout(() => {
-        handleNextQuestion();
+        setHasAnswered(false);
+        setSelectedAnswer(undefined);
+        // Wait for next "new-question" from instructor
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [hasAnswered, currentQuestionIndex]);
+  }, [hasAnswered]);
 
-  const currentQuestion = mockQuestions[currentQuestionIndex];
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-600">
+          Waiting for instructor to start the quiz...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -86,7 +82,9 @@ const Quiz = () => {
           <Card className="bg-gradient-to-r from-purple-100 to-blue-100 border-0">
             <CardContent className="p-3">
               <div className="text-center">
-                <div className="text-xl font-bold text-purple-800">{score.toLocaleString()}</div>
+                <div className="text-xl font-bold text-purple-800">
+                  {score.toLocaleString()}
+                </div>
                 <div className="text-sm text-purple-600">Points</div>
               </div>
             </CardContent>
@@ -96,16 +94,16 @@ const Quiz = () => {
 
       {!hasAnswered ? (
         <div className="space-y-6">
-          <TimerBar 
-            duration={30} 
+          <TimerBar
+            duration={30}
             onTimeUp={handleTimeUp}
-            key={currentQuestionIndex}
+            key={currentQuestion.id}
           />
-          
+
           <QuestionCard
             question={currentQuestion}
-            currentQuestion={currentQuestionIndex + 1}
-            totalQuestions={mockQuestions.length}
+            currentQuestion={questionNumber}
+            totalQuestions={undefined}
             onAnswerSelect={handleAnswerSelect}
             selectedAnswer={selectedAnswer}
           />
@@ -115,12 +113,14 @@ const Quiz = () => {
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardContent className="p-8">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-green-800 mb-2">Answer Submitted!</h2>
+              <h2 className="text-2xl font-bold text-green-800 mb-2">
+                Answer Submitted!
+              </h2>
               <p className="text-green-700">
-                {selectedAnswer === currentQuestion.correctAnswer 
-                  ? "Correct! Well done!" 
-                  : "Incorrect. The correct answer was: " + currentQuestion.options[currentQuestion.correctAnswer]
-                }
+                {selectedAnswer === currentQuestion.correctAnswer
+                  ? "Correct! Well done!"
+                  : "Incorrect. The correct answer was: " +
+                    currentQuestion.options[currentQuestion.correctAnswer]}
               </p>
               <div className="mt-4 flex items-center justify-center space-x-2 text-green-600">
                 <Clock className="h-4 w-4" />
@@ -131,8 +131,8 @@ const Quiz = () => {
 
           <QuestionCard
             question={currentQuestion}
-            currentQuestion={currentQuestionIndex + 1}
-            totalQuestions={mockQuestions.length}
+            currentQuestion={questionNumber}
+            totalQuestions={undefined}
             selectedAnswer={selectedAnswer}
             showCorrectAnswer={true}
           />
