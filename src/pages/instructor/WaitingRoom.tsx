@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +10,21 @@ const WaitingRoom = () => {
   const [gameCode] = useState("ABC123");
   const [playerCount, setPlayerCount] = useState(0);
   const [copied, setCopied] = useState(false);
+  const location = useLocation();
+
+  // Get questions passed from Create
+  const questions = location.state?.questions;
+
+  if (!questions) {
+    // No questions? Redirect back to create or handle error
+    navigate("/create");
+    return null;
+  }
 
   // Mock players joining
   useEffect(() => {
     const interval = setInterval(() => {
-      setPlayerCount(prev => {
+      setPlayerCount((prev) => {
         const newCount = prev + Math.floor(Math.random() * 2);
         return Math.min(newCount, 12); // Cap at 12 players
       });
@@ -30,31 +39,35 @@ const WaitingRoom = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.log('Failed to copy');
+      console.log("Failed to copy");
     }
   };
 
   const handleStartQuiz = () => {
-    navigate("/instructor/host");
+    navigate("/instructor/host", { state: { questions: questions } });
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Waiting for Players</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          Waiting for Players
+        </h1>
         <p className="text-gray-600">Share the game code with your students</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-purple-800">Game Code</CardTitle>
+            <CardTitle className="text-2xl text-purple-800">
+              Game Code
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className="text-6xl font-bold text-purple-600 tracking-wider">
               {gameCode}
             </div>
-            <Button 
+            <Button
               onClick={handleCopyCode}
               variant="outline"
               className="border-purple-300 text-purple-700 hover:bg-purple-100"
@@ -89,12 +102,19 @@ const WaitingRoom = () => {
               {playerCount > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center">
                   {Array.from({ length: Math.min(playerCount, 8) }, (_, i) => (
-                    <Badge key={i} variant="secondary" className="bg-green-100 text-green-800">
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      className="bg-green-100 text-green-800"
+                    >
                       Player {i + 1}
                     </Badge>
                   ))}
                   {playerCount > 8 && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-800"
+                    >
                       +{playerCount - 8} more
                     </Badge>
                   )}
@@ -106,7 +126,7 @@ const WaitingRoom = () => {
       </div>
 
       <div className="text-center mt-8">
-        <Button 
+        <Button
           onClick={handleStartQuiz}
           disabled={playerCount === 0}
           size="lg"
@@ -116,7 +136,9 @@ const WaitingRoom = () => {
           Start Quiz ({playerCount} players)
         </Button>
         {playerCount === 0 && (
-          <p className="text-gray-500 mt-2">Waiting for at least 1 player to join...</p>
+          <p className="text-gray-500 mt-2">
+            Waiting for at least 1 player to join...
+          </p>
         )}
       </div>
 
@@ -124,7 +146,8 @@ const WaitingRoom = () => {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <p className="text-blue-800 font-medium">
-              Students can join at: <span className="font-bold">yourapp.com/student/join</span>
+              Students can join at:{" "}
+              <span className="font-bold">yourapp.com/student/join</span>
             </p>
             <p className="text-blue-600 text-sm mt-1">
               Or they can scan the QR code (feature coming soon)

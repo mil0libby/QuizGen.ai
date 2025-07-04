@@ -1,51 +1,45 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import QuestionCard from "@/components/QuestionCard";
 import TimerBar from "@/components/TimerBar";
 import LeaderboardTable from "@/components/LeaderboardTable";
 import { ChevronRight, Users } from "lucide-react";
 
 const Host = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Questions pipelined through React Router state from previous page
+  const questions = location.state?.questions;
+
+  // If no questions, redirect to Create or show message
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto p-6 text-center">
+        <h2 className="text-2xl font-bold mb-4">No Quiz Questions Found</h2>
+        <p className="mb-6">Please create a quiz first.</p>
+        <Button onClick={() => navigate("/create")}>Go to Create Quiz</Button>
+      </div>
+    );
+  }
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gameCode] = useState("ABC123");
 
-  const mockQuestions = [
-    {
-      id: 1,
-      question: "Which event is considered the beginning of World War 2?",
-      options: ["Pearl Harbor Attack", "Invasion of Poland", "Battle of Britain", "D-Day Landings"],
-      correctAnswer: 1,
-      difficulty: "Easy"
-    },
-    {
-      id: 2,
-      question: "Who was the leader of Nazi Germany during World War 2?",
-      options: ["Heinrich Himmler", "Hermann Göring", "Adolf Hitler", "Joseph Goebbels"],
-      correctAnswer: 2,
-      difficulty: "Easy"
-    },
-    {
-      id: 3,
-      question: "In which year did World War 2 end?",
-      options: ["1944", "1945", "1946", "1947"],
-      correctAnswer: 1,
-      difficulty: "Medium"
-    }
-  ];
-
+  // You can keep your mock players or integrate real players later
   const mockPlayers = [
     { id: 1, name: "Alice", score: 2850, correctAnswers: 3, totalAnswers: 3 },
     { id: 2, name: "Bob", score: 2340, correctAnswers: 2, totalAnswers: 3 },
     { id: 3, name: "Charlie", score: 1890, correctAnswers: 2, totalAnswers: 3 },
     { id: 4, name: "Diana", score: 1450, correctAnswers: 1, totalAnswers: 3 },
-    { id: 5, name: "Eve", score: 980, correctAnswers: 1, totalAnswers: 3 }
+    { id: 5, name: "Eve", score: 980, correctAnswers: 1, totalAnswers: 3 },
   ];
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < mockQuestions.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setShowLeaderboard(false);
     } else {
@@ -57,8 +51,8 @@ const Host = () => {
     setShowLeaderboard(true);
   };
 
-  const currentQuestion = mockQuestions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === mockQuestions.length - 1;
+  const currentQuestion = questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -79,7 +73,9 @@ const Host = () => {
             <Card className="bg-blue-100 border-blue-200">
               <CardContent className="p-3">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-800">{mockPlayers.length}</div>
+                  <div className="text-2xl font-bold text-blue-800">
+                    {mockPlayers.length}
+                  </div>
                   <div className="text-sm text-blue-600">Players</div>
                 </div>
               </CardContent>
@@ -90,22 +86,22 @@ const Host = () => {
 
       {!showLeaderboard ? (
         <div className="space-y-6">
-          <TimerBar 
-            duration={30} 
+          <TimerBar
+            duration={30}
             onTimeUp={handleTimeUp}
-            key={currentQuestionIndex} // Reset timer for each question
+            key={currentQuestionIndex} // Reset timer each question
           />
-          
+
           <QuestionCard
             question={currentQuestion}
             currentQuestion={currentQuestionIndex + 1}
-            totalQuestions={mockQuestions.length}
+            totalQuestions={questions.length}
             isInstructor={true}
             showCorrectAnswer={false}
           />
 
           <div className="text-center">
-            <Button 
+            <Button
               onClick={handleNextQuestion}
               size="lg"
               className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
@@ -119,18 +115,25 @@ const Host = () => {
         <div className="space-y-6">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {isLastQuestion ? "Final Results" : `Question ${currentQuestionIndex + 1} Results`}
+              {isLastQuestion
+                ? "Final Results"
+                : `Question ${currentQuestionIndex + 1} Results`}
             </h2>
             <p className="text-gray-600">
-              {isLastQuestion ? "Congratulations to all players!" : "Current standings after this question"}
+              {isLastQuestion
+                ? "Congratulations to all players!"
+                : "Current standings after this question"}
             </p>
           </div>
 
-          <LeaderboardTable players={mockPlayers} showFullStats={isLastQuestion} />
+          <LeaderboardTable
+            players={mockPlayers}
+            showFullStats={isLastQuestion}
+          />
 
           {!isLastQuestion && (
             <div className="text-center">
-              <Button 
+              <Button
                 onClick={handleNextQuestion}
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
