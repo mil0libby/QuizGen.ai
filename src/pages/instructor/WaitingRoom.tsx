@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Play, Copy, Check } from "lucide-react";
+import socket from "@/lib/socket"; // adjust path if needed
 
 const WaitingRoom = () => {
   const navigate = useNavigate();
-  const [gameCode] = useState("ABC123");
-  const [playerCount, setPlayerCount] = useState(0);
+  const [gameCode] = useState("ABC555"); // Make sure this matches your backend/game code flow
+  const [players, setPlayers] = useState([]);
   const [copied, setCopied] = useState(false);
   const location = useLocation();
 
@@ -21,17 +22,20 @@ const WaitingRoom = () => {
     return null;
   }
 
-  // Mock players joining
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlayerCount((prev) => {
-        const newCount = prev + Math.floor(Math.random() * 2);
-        return Math.min(newCount, 12); // Cap at 12 players
-      });
-    }, 3000);
+    // Join the game room as Instructor
+    socket.emit("join-game", { gameCode, name: "Instructor" });
 
-    return () => clearInterval(interval);
-  }, []);
+    // Listen for player list updates from the server
+    socket.on("players-updated", (players) => {
+      setPlayers(players);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off("players-updated");
+    };
+  }, [gameCode]);
 
   const handleCopyCode = async () => {
     try {
@@ -44,7 +48,7 @@ const WaitingRoom = () => {
   };
 
   const handleStartQuiz = () => {
-    navigate("/instructor/host", { state: { questions: questions } });
+    navigate("/instructor/host", { state: { questions } });
   };
 
   return (
@@ -96,26 +100,26 @@ const WaitingRoom = () => {
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className="text-6xl font-bold text-green-600">
-              {playerCount}
+              {players.length}
             </div>
             <div className="space-y-2">
-              {playerCount > 0 && (
+              {players.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {Array.from({ length: Math.min(playerCount, 8) }, (_, i) => (
+                  {players.slice(0, 8).map((player) => (
                     <Badge
-                      key={i}
+                      key={player.id}
                       variant="secondary"
                       className="bg-green-100 text-green-800"
                     >
-                      Player {i + 1}
+                      {player.name}
                     </Badge>
                   ))}
-                  {playerCount > 8 && (
+                  {players.length > 8 && (
                     <Badge
                       variant="secondary"
                       className="bg-green-100 text-green-800"
                     >
-                      +{playerCount - 8} more
+                      +{players.length - 8} more
                     </Badge>
                   )}
                 </div>
@@ -128,14 +132,14 @@ const WaitingRoom = () => {
       <div className="text-center mt-8">
         <Button
           onClick={handleStartQuiz}
-          disabled={playerCount === 0}
+          disabled={players.length === 0}
           size="lg"
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-xl px-8 py-4"
         >
           <Play className="h-6 w-6 mr-3" />
-          Start Quiz ({playerCount} players)
+          Start Quiz ({players.length} players)
         </Button>
-        {playerCount === 0 && (
+        {players.length === 0 && (
           <p className="text-gray-500 mt-2">
             Waiting for at least 1 player to join...
           </p>

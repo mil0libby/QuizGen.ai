@@ -27,7 +27,7 @@ const Host = () => {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [gameCode] = useState("ABC123");
+  const [gameCode] = useState("ABC555");
 
   // You can keep your mock players or integrate real players later
   const mockPlayers = [

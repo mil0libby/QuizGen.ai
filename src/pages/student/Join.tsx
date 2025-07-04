@@ -1,11 +1,19 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Users, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const socket = io("http://localhost:8080");
 
 const Join = () => {
   const navigate = useNavigate();
@@ -14,7 +22,35 @@ const Join = () => {
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
 
-  const handleJoinQuiz = async () => {
+  useEffect(() => {
+    // Success handler
+    socket.on("join-success", () => {
+      toast({
+        title: "Successfully Joined!",
+        description: `Welcome ${playerName}! Get ready to play.`,
+      });
+      navigate("/student/quiz", {
+        state: { playerName, gameCode },
+      });
+    });
+
+    // Error handler
+    socket.on("join-error", (msg: string) => {
+      toast({
+        title: "Join Error",
+        description: msg,
+        variant: "destructive",
+      });
+      setIsJoining(false);
+    });
+
+    return () => {
+      socket.off("join-success");
+      socket.off("join-error");
+    };
+  }, [playerName, gameCode, navigate, toast]);
+
+  const handleJoinQuiz = () => {
     if (!gameCode || !playerName) {
       toast({
         title: "Missing Information",
@@ -25,25 +61,10 @@ const Join = () => {
     }
 
     setIsJoining(true);
-    
-    // Mock join validation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    if (gameCode.toUpperCase() === "ABC123") {
-      toast({
-        title: "Successfully Joined!",
-        description: `Welcome ${playerName}! Get ready to play.`,
-      });
-      navigate("/student/quiz");
-    } else {
-      toast({
-        title: "Invalid Game Code",
-        description: "Please check the game code and try again.",
-        variant: "destructive",
-      });
-    }
-    
-    setIsJoining(false);
+    socket.emit("join-game", {
+      gameCode: gameCode.toUpperCase(),
+      name: playerName,
+    });
   };
 
   return (
@@ -54,7 +75,9 @@ const Join = () => {
             <Users className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Quiz</h1>
-          <p className="text-gray-600">Enter the game code to join the live quiz</p>
+          <p className="text-gray-600">
+            Enter the game code to join the live quiz
+          </p>
         </div>
 
         <Card>
@@ -94,7 +117,7 @@ const Join = () => {
               />
             </div>
 
-            <Button 
+            <Button
               onClick={handleJoinQuiz}
               disabled={!gameCode || !playerName || isJoining}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
