@@ -28,7 +28,11 @@ const LeaderboardTable = ({
   showFullStats = false,
   totalAnswers = 0,
 }: LeaderboardTableProps) => {
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const filteredPlayers = players.filter(
+    (player) => player.name !== "Instructor"
+  );
+
+  const sortedPlayers = [...filteredPlayers].sort((a, b) => b.score - a.score);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
