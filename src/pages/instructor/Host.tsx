@@ -45,7 +45,7 @@ const Host = () => {
   };
 
   const handleTimeUp = () => {
-    setShowLeaderboard(true);
+    handleNextQuestion();
   };
 
   const currentQuestion = questions[currentQuestionIndex];
