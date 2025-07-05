@@ -1,23 +1,33 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Award } from "lucide-react";
 
 interface Player {
-  id: number;
+  id: string; // socket id is a string
   name: string;
   score: number;
-  correctAnswers: number;
-  totalAnswers: number;
+  // Removed correctAnswers and totalAnswers since calculated on client
 }
 
 interface LeaderboardTableProps {
   players: Player[];
   showFullStats?: boolean;
+  totalAnswers?: number; // total questions count from host
 }
 
-const LeaderboardTable = ({ players, showFullStats = false }: LeaderboardTableProps) => {
+const LeaderboardTable = ({
+  players,
+  showFullStats = false,
+  totalAnswers = 0,
+}: LeaderboardTableProps) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   const getRankIcon = (rank: number) => {
@@ -72,9 +82,11 @@ const LeaderboardTable = ({ players, showFullStats = false }: LeaderboardTablePr
           <TableBody>
             {sortedPlayers.map((player, index) => {
               const rank = index + 1;
-              const accuracy = player.totalAnswers > 0 
-                ? Math.round((player.correctAnswers / player.totalAnswers) * 100) 
-                : 0;
+              const correctAnswers = player.score / 1000;
+              const accuracy =
+                totalAnswers > 0
+                  ? Math.round((correctAnswers / totalAnswers) * 100)
+                  : 0;
 
               return (
                 <TableRow key={player.id} className={getRankStyle(rank)}>
@@ -97,10 +109,18 @@ const LeaderboardTable = ({ players, showFullStats = false }: LeaderboardTablePr
                   {showFullStats && (
                     <>
                       <TableCell className="text-right">
-                        {player.correctAnswers}/{player.totalAnswers}
+                        {correctAnswers}/{totalAnswers}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Badge variant={accuracy >= 80 ? "default" : accuracy >= 60 ? "secondary" : "destructive"}>
+                        <Badge
+                          variant={
+                            accuracy >= 80
+                              ? "default"
+                              : accuracy >= 60
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
                           {accuracy}%
                         </Badge>
                       </TableCell>

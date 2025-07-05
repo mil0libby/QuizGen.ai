@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +12,8 @@ const Host = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Questions pipelined through React Router state from previous page
   const questions = location.state?.questions;
 
-  // If no questions, redirect to Create or show message
   if (!questions || !Array.isArray(questions) || questions.length === 0) {
     return (
       <div className="max-w-6xl mx-auto p-6 text-center">
@@ -29,9 +27,30 @@ const Host = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gameCode] = useState("ABC555");
+  const [players, setPlayers] = useState([]);
+
+  useEffect(() => {
+    // Send first question on mount
+    socket.emit("send-question", {
+      gameCode,
+      question: questions[0],
+    });
+
+    // Listen for player updates
+    const handlePlayersUpdated = (updatedPlayers) => {
+      setPlayers(updatedPlayers);
+    };
+
+    socket.on("players-updated", handlePlayersUpdated);
+
+    return () => {
+      socket.off("players-updated", handlePlayersUpdated);
+    };
+  }, [gameCode, questions]);
 
   const handleNextQuestion = () => {
     const nextIndex = currentQuestionIndex + 1;
+
     if (nextIndex < questions.length) {
       socket.emit("send-question", {
         gameCode,
@@ -70,7 +89,9 @@ const Host = () => {
             <Card className="bg-blue-100 border-blue-200">
               <CardContent className="p-3">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-800">{5}</div>
+                  <div className="text-2xl font-bold text-blue-800">
+                    {players.length}
+                  </div>
                   <div className="text-sm text-blue-600">Players</div>
                 </div>
               </CardContent>
@@ -84,7 +105,7 @@ const Host = () => {
           <TimerBar
             duration={30}
             onTimeUp={handleTimeUp}
-            key={currentQuestionIndex} // Reset timer each question
+            key={currentQuestionIndex}
           />
 
           <QuestionCard
@@ -99,7 +120,12 @@ const Host = () => {
             <Button
               onClick={handleNextQuestion}
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+              disabled={showLeaderboard}
+              className={`bg-gradient-to-r ${
+                isLastQuestion
+                  ? "from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
+                  : "from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+              }`}
             >
               <ChevronRight className="h-5 w-5 mr-2" />
               {isLastQuestion ? "Show Final Results" : "Next Question"}
@@ -121,7 +147,11 @@ const Host = () => {
             </p>
           </div>
 
-          <LeaderboardTable players={null} showFullStats={isLastQuestion} />
+          <LeaderboardTable
+            players={players} // Your real players array from socket
+            showFullStats={isLastQuestion}
+            totalAnswers={questions.length} // total questions count
+          />
 
           {!isLastQuestion && (
             <div className="text-center">
