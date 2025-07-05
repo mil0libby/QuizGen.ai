@@ -22,7 +22,7 @@ app.use(express.json());
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // In-memory storage for players per game room
-// Format: { [gameCode]: [{ id: socketId, name: playerName }, ...] }
+// Format: { [gameCode]: [{ id: socketId, name: playerName, score: number }, ...] }
 const gameRooms = {};
 
 io.on("connection", (socket) => {
@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
 
     // Add player if not already in the room
     if (!gameRooms[gameCode].some((player) => player.id === socket.id)) {
-      gameRooms[gameCode].push({ id: socket.id, name });
+      gameRooms[gameCode].push({ id: socket.id, name, score: 0 });
       console.log(`${name} joined game ${gameCode}`);
     }
 
@@ -52,10 +52,27 @@ io.on("connection", (socket) => {
     console.log("Sent question to room:", gameCode);
   });
 
-  // NEW: Handle game start event
+  // Handle game start event
   socket.on("start-game", ({ gameCode }) => {
     console.log(`Game started in room ${gameCode}`);
     io.to(gameCode).emit("game-start", { gameCode });
+  });
+
+  // Handle answer submission from student
+  socket.on("submit-answer", ({ gameCode, isCorrect }) => {
+    const players = gameRooms[gameCode];
+    if (!players) return;
+
+    const player = players.find((p) => p.id === socket.id);
+    if (!player) return;
+
+    if (isCorrect) {
+      player.score = (player.score || 0) + 1000; // increment score or correct answer count
+      console.log(`${player.name} scored! Total score: ${player.score}`);
+    }
+
+    // Broadcast updated player list (with updated scores)
+    io.to(gameCode).emit("players-updated", players);
   });
 
   // Handle client disconnect

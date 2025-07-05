@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import QuestionCard from "@/components/QuestionCard";
 import TimerBar from "@/components/TimerBar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import socket from "@/lib/socket";
 
 const Quiz = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const gameCode = location.state?.gameCode; // Make sure gameCode is passed when navigating here
 
   const [currentQuestion, setCurrentQuestion] = useState<any | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | undefined>();
@@ -21,8 +23,16 @@ const Quiz = () => {
     setSelectedAnswer(answerIndex);
     setHasAnswered(true);
 
-    if (answerIndex === currentQuestion.correctAnswer) {
+    const isCorrect = answerIndex === currentQuestion.correctAnswer;
+    if (isCorrect) {
       setScore((prev) => prev + 1000);
+    }
+
+    if (gameCode) {
+      socket.emit("submit-answer", {
+        gameCode,
+        isCorrect,
+      });
     }
   };
 

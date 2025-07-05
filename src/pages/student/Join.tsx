@@ -135,7 +135,7 @@ const Join = () => {
               size="lg"
             >
               {isJoining ? (
-                "Joining..."
+                "Waiting for instructor to start.."
               ) : (
                 <div className="flex items-center space-x-2">
                   <LogIn className="h-5 w-5" />
