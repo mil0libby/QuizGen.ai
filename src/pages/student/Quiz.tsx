@@ -13,7 +13,7 @@ const Quiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | undefined>();
   const [hasAnswered, setHasAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [questionNumber, setQuestionNumber] = useState(0); // Just to show progress
+  const [questionNumber, setQuestionNumber] = useState(0); // For progress display
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (hasAnswered) return;
@@ -32,37 +32,20 @@ const Quiz = () => {
     }
   };
 
-  const handleAutoAdvance = () => {
-    // In real-time setup, the instructor controls next question
-    // So we only reset state and wait for next `new-question`
+  const handleNewQuestion = (question: any) => {
+    setCurrentQuestion(question);
     setSelectedAnswer(undefined);
     setHasAnswered(false);
+    setQuestionNumber((prev) => prev + 1);
   };
 
   useEffect(() => {
-    socket.on("new-question", (question) => {
-      console.log("new question");
-      setCurrentQuestion(question);
-      handleAutoAdvance();
-      setQuestionNumber((prev) => prev + 1);
-    });
+    socket.on("new-question", handleNewQuestion);
 
     return () => {
-      socket.off("new-question");
+      socket.off("new-question", handleNewQuestion);
     };
   }, []);
-
-  // Auto advance after answer reveal delay
-  useEffect(() => {
-    if (hasAnswered) {
-      const timer = setTimeout(() => {
-        setHasAnswered(false);
-        setSelectedAnswer(undefined);
-        // Wait for next "new-question" from instructor
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasAnswered]);
 
   if (!currentQuestion) {
     return (
@@ -124,7 +107,7 @@ const Quiz = () => {
               </p>
               <div className="mt-4 flex items-center justify-center space-x-2 text-green-600">
                 <Clock className="h-4 w-4" />
-                <span className="text-sm">Next question starting soon...</span>
+                <span className="text-sm">Waiting for next question...</span>
               </div>
             </CardContent>
           </Card>
