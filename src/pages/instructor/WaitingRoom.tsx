@@ -48,14 +48,16 @@ const WaitingRoom = () => {
   };
 
   const handleStartQuiz = () => {
-    socket.emit("send-question", {
-      gameCode,
-      question: questions[0],
-    });
     socket.emit("start-game", { gameCode });
 
     console.log("game starting");
     navigate("/instructor/host", { state: { questions } });
+    setTimeout(() => {
+      socket.emit("send-question", {
+        gameCode,
+        question: questions[0],
+      });
+    }, 1000); // 1 second delay to give students time to mount
   };
 
   return (
