@@ -68,9 +68,10 @@ const Join = () => {
   };
 
   useEffect(() => {
-    socket.on("game-start", ({ gameCode }) => {
+    socket.on("game-start", ({ gameCode, time }) => {
       console.log("Game started, navigating to quiz page");
-      navigate("/student/quiz", { state: { gameCode } });
+      console.log(time, "seconds per question");
+      navigate("/student/quiz", { state: { gameCode, time } });
     });
 
     return () => {

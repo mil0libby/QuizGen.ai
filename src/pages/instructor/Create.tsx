@@ -81,7 +81,7 @@ const Create = () => {
 
   const handleStartQuiz = () => {
     navigate("/instructor/waiting-room", {
-      state: { questions: generatedQuestions },
+      state: { questions: generatedQuestions, time: timePerQuestion },
     });
   };
 
@@ -177,7 +177,7 @@ const Create = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-x-hidden">
           <CardHeader>
             <CardTitle>Quiz Preview</CardTitle>
             <CardDescription>
@@ -192,7 +192,6 @@ const Create = () => {
                     <TableRow>
                       <TableHead>#</TableHead>
                       <TableHead>Question</TableHead>
-                      <TableHead>Difficulty</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -201,15 +200,6 @@ const Create = () => {
                         <TableCell>{index + 1}</TableCell>
                         <TableCell className="max-w-xs truncate">
                           {q.question}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              q.difficulty === "Easy" ? "secondary" : "default"
-                            }
-                          >
-                            {q.difficulty}
-                          </Badge>
                         </TableCell>
                       </TableRow>
                     ))}

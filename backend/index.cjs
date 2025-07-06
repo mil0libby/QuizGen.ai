@@ -53,9 +53,10 @@ io.on("connection", (socket) => {
   });
 
   // Handle game start event
-  socket.on("start-game", ({ gameCode }) => {
+  socket.on("start-game", ({ gameCode, time }) => {
     console.log(`Game started in room ${gameCode}`);
-    io.to(gameCode).emit("game-start", { gameCode });
+    console.log(time, "per question");
+    io.to(gameCode).emit("game-start", { gameCode, time });
   });
 
   // Handle answer submission from student

@@ -15,6 +15,7 @@ const WaitingRoom = () => {
 
   // Get questions passed from Create
   const questions = location.state?.questions;
+  const time = location.state?.time;
 
   if (!questions) {
     // No questions? Redirect back to create or handle error
@@ -48,10 +49,12 @@ const WaitingRoom = () => {
   };
 
   const handleStartQuiz = () => {
-    socket.emit("start-game", { gameCode });
+    socket.emit("start-game", { gameCode, time });
 
     console.log("game starting");
-    navigate("/instructor/host", { state: { questions } });
+    navigate("/instructor/host", {
+      state: { questions: questions, time: time },
+    });
     setTimeout(() => {
       socket.emit("send-question", {
         gameCode,

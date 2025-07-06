@@ -10,6 +10,11 @@ const Quiz = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const gameCode = location.state?.gameCode; // Make sure gameCode is passed when navigating here
+  const time = location.state?.time;
+
+  useEffect(() => {
+    console.log(time, "seconds per question");
+  }, [time]);
 
   const [currentQuestion, setCurrentQuestion] = useState<any | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | undefined>();
@@ -111,7 +116,7 @@ const Quiz = () => {
       {!hasAnswered ? (
         <div className="space-y-6">
           <TimerBar
-            duration={30}
+            duration={time}
             onTimeUp={handleTimeUp}
             key={currentQuestion.id}
           />

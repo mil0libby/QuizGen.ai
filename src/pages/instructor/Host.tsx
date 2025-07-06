@@ -13,6 +13,11 @@ const Host = () => {
   const navigate = useNavigate();
 
   const questions = location.state?.questions;
+  const time = location.state?.time;
+
+  useEffect(() => {
+    console.log(time, "seconds per question");
+  }, [time]);
 
   if (!questions || !Array.isArray(questions) || questions.length === 0) {
     return (
@@ -104,7 +109,7 @@ const Host = () => {
       {!showLeaderboard ? (
         <div className="space-y-6">
           <TimerBar
-            duration={30}
+            duration={time}
             onTimeUp={handleTimeUp}
             key={currentQuestionIndex}
           />
