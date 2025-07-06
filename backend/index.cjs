@@ -75,6 +75,14 @@ io.on("connection", (socket) => {
     io.to(gameCode).emit("players-updated", players);
   });
 
+  // Host emits 'quiz-complete'
+  socket.on("quiz-complete", ({ gameCode }) => {
+    const players = gameRooms[gameCode];
+    if (players) {
+      io.to(gameCode).emit("quiz-complete", { players });
+    }
+  });
+
   // Handle client disconnect
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);

@@ -50,6 +50,29 @@ const Quiz = () => {
   };
 
   useEffect(() => {
+    const handleQuizComplete = ({ players }: { players: any[] }) => {
+      if (!players || players.length === 0) return;
+
+      // Delay navigation briefly to allow any animations to complete
+      setTimeout(() => {
+        navigate("/student/leaderboard", {
+          state: {
+            players,
+            playerId: socket.id,
+            totalQuestions: questionNumber,
+          },
+        });
+      }, 1000); // 1-second delay (optional)
+    };
+
+    socket.on("quiz-complete", handleQuizComplete);
+
+    return () => {
+      socket.off("quiz-complete", handleQuizComplete);
+    };
+  }, [navigate, questionNumber]);
+
+  useEffect(() => {
     socket.on("new-question", handleNewQuestion);
 
     return () => {

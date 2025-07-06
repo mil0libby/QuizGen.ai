@@ -60,6 +60,7 @@ const Host = () => {
       setShowLeaderboard(false);
     } else {
       setShowLeaderboard(true);
+      socket.emit("quiz-complete", { gameCode });
     }
   };
 
