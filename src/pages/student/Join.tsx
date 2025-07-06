@@ -111,9 +111,6 @@ const Join = () => {
                 className="text-center text-lg font-mono tracking-wider"
                 maxLength={6}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Hint: Try "ABC123" for demo
-              </p>
             </div>
 
             <div>
