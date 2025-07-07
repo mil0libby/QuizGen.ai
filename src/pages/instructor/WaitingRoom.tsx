@@ -112,20 +112,25 @@ const WaitingRoom = () => {
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className="text-6xl font-bold text-green-600">
-              {players.length}
+              {players.length - 1}
             </div>
             <div className="space-y-2">
               {players.length > 0 && (
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {players.slice(0, 8).map((player) => (
-                    <Badge
-                      key={player.id}
-                      variant="secondary"
-                      className="bg-green-100 text-green-800"
-                    >
-                      {player.name}
-                    </Badge>
-                  ))}
+                  {players
+                    .filter((player) => {
+                      return player.name != "Instructor";
+                    })
+                    .slice(0, 8)
+                    .map((player) => (
+                      <Badge
+                        key={player.id}
+                        variant="secondary"
+                        className="bg-green-100 text-green-800"
+                      >
+                        {player.name}
+                      </Badge>
+                    ))}
                   {players.length > 8 && (
                     <Badge
                       variant="secondary"
@@ -144,12 +149,12 @@ const WaitingRoom = () => {
       <div className="text-center mt-8">
         <Button
           onClick={handleStartQuiz}
-          disabled={players.length === 0}
+          disabled={players.length - 1 === 0}
           size="lg"
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-xl px-8 py-4"
         >
           <Play className="h-6 w-6 mr-3" />
-          Start Quiz ({players.length} players)
+          Start Quiz ({players.length - 1} players)
         </Button>
         {players.length === 0 && (
           <p className="text-gray-500 mt-2">
