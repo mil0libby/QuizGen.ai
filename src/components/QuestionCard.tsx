@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,20 +20,20 @@ interface QuestionCardProps {
   isInstructor?: boolean;
 }
 
-const QuestionCard = ({ 
-  question, 
-  currentQuestion, 
-  totalQuestions, 
-  onAnswerSelect, 
-  selectedAnswer, 
+const QuestionCard = ({
+  question,
+  currentQuestion,
+  totalQuestions,
+  onAnswerSelect,
+  selectedAnswer,
   showCorrectAnswer = false,
-  isInstructor = false 
+  isInstructor = false,
 }: QuestionCardProps) => {
   const optionColors = [
     "bg-red-500 hover:bg-red-600",
-    "bg-blue-500 hover:bg-blue-600", 
+    "bg-blue-500 hover:bg-blue-600",
     "bg-yellow-500 hover:bg-yellow-600",
-    "bg-green-500 hover:bg-green-600"
+    "bg-green-500 hover:bg-green-600",
   ];
 
   const getOptionStyle = (index: number) => {
@@ -51,16 +50,18 @@ const QuestionCard = ({
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader className="text-center">
         <div className="flex justify-between items-center mb-4">
-          <Badge variant="outline">
-            Question {currentQuestion} of {totalQuestions}
-          </Badge>
+          <Badge variant="outline">Question {currentQuestion}</Badge>
           {question.difficulty && (
-            <Badge variant={question.difficulty === 'Easy' ? 'secondary' : 'default'}>
+            <Badge
+              variant={question.difficulty === "Easy" ? "secondary" : "default"}
+            >
               {question.difficulty}
             </Badge>
           )}
         </div>
-        <CardTitle className="text-2xl text-gray-900">{question.question}</CardTitle>
+        <CardTitle className="text-2xl text-gray-900">
+          {question.question}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,7 +70,9 @@ const QuestionCard = ({
               key={index}
               onClick={() => onAnswerSelect?.(index)}
               disabled={isInstructor || selectedAnswer !== undefined}
-              className={`p-6 h-auto text-left justify-start text-wrap ${getOptionStyle(index)}`}
+              className={`p-6 h-auto text-left justify-start text-wrap ${getOptionStyle(
+                index
+              )}`}
               variant="outline"
             >
               <div className="flex items-center space-x-3">

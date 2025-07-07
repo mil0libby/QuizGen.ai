@@ -5,6 +5,7 @@ import TimerBar from "@/components/TimerBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Clock } from "lucide-react";
 import socket from "@/lib/socket";
+import { XCircle } from "lucide-react";
 
 const Quiz = () => {
   const navigate = useNavigate();
@@ -21,17 +22,22 @@ const Quiz = () => {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [questionNumber, setQuestionNumber] = useState(0); // For progress display
+  const [correct, setCorrect] = useState(false);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (hasAnswered) return;
 
     setSelectedAnswer(answerIndex);
-    setHasAnswered(true);
 
     const isCorrect = answerIndex === currentQuestion.correctAnswer;
     if (isCorrect) {
       setScore((prev) => prev + 1000);
+      setCorrect(true);
+    } else {
+      setCorrect(false);
     }
+
+    setHasAnswered(true);
 
     if (gameCode) {
       socket.emit("submit-answer", {
@@ -123,7 +129,7 @@ const Quiz = () => {
 
           <QuestionCard
             question={currentQuestion}
-            currentQuestion={questionNumber}
+            currentQuestion={questionNumber - 1}
             totalQuestions={undefined}
             onAnswerSelect={handleAnswerSelect}
             selectedAnswer={selectedAnswer}
@@ -131,28 +137,48 @@ const Quiz = () => {
         </div>
       ) : (
         <div className="space-y-6 text-center">
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Card
+            className={`bg-gradient-to-br ${
+              correct
+                ? "from-green-50 to-green-100 border-green-200"
+                : "from-red-50 to-red-100 border-red-200"
+            }`}
+          >
             <CardContent className="p-8">
-              <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-green-800 mb-2">
+              {correct ? (
+                <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-600" />
+              ) : (
+                <XCircle className="h-16 w-16 mx-auto mb-4 text-red-600" />
+              )}
+
+              <h2
+                className={`text-2xl font-bold mb-2 ${
+                  correct ? "text-green-800" : "text-red-800"
+                }`}
+              >
                 Answer Submitted!
               </h2>
-              <p className="text-green-700">
+
+              <p className={correct ? "text-green-700" : "text-red-700"}>
                 {selectedAnswer === currentQuestion.correctAnswer
                   ? "Correct! Well done!"
                   : "Incorrect. The correct answer was: " +
                     currentQuestion.options[currentQuestion.correctAnswer]}
               </p>
-              <div className="mt-4 flex items-center justify-center space-x-2 text-green-600">
+
+              <div
+                className={`mt-4 flex items-center justify-center space-x-2 ${
+                  correct ? "text-green-600" : "text-red-600"
+                }`}
+              >
                 <Clock className="h-4 w-4" />
                 <span className="text-sm">Waiting for next question...</span>
               </div>
             </CardContent>
           </Card>
-
           <QuestionCard
             question={currentQuestion}
-            currentQuestion={questionNumber}
+            currentQuestion={questionNumber - 1}
             totalQuestions={undefined}
             selectedAnswer={selectedAnswer}
             showCorrectAnswer={true}

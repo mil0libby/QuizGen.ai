@@ -9,7 +9,7 @@ const Leaderboard = () => {
   const location = useLocation();
   const players = location.state?.players || [];
   const currentPlayerId = location.state?.playerId;
-  const totalQuestions = location.state?.totalQuestions;
+  const totalQuestions = location.state?.totalQuestions - 1;
 
   useEffect(() => {
     console.log(totalQuestions);
